@@ -1,0 +1,250 @@
+@import 'utility';
+
+$drp-width: 700px;
+$drp-padding-x: $spacing-large;
+$drp-padding-y: $spacing-large * 1.125;
+
+/*
+  calculation:
+    vertical padding top and bottom
+  + span (x days) height with margin, font-size and line-height
+  + input font size with height
+  + 2px border (2/$fs-document)=rem
+*/
+$drp-layer-offset: $drp-padding-y * 2 + ($fs-medium * 0.25 + $fs-medium * 1.3)
+  + ($fs-base * 1.6) + (2px/$fs-document)*1rem;
+
+
+.date-range-picker {
+  display: inline-block;
+  position: relative;
+
+  &-display {
+    align-items: center;
+    border: 0;
+    border-bottom: 1px solid $color-border;
+    display: inline-flex;
+    position: relative;
+    transition: border-color 0.25s;
+    z-index: 10;
+
+    .expanded & {
+      border-bottom-color: transparent;
+    }
+
+    .arrow-icon {
+      position: absolute;
+      top: 50%;
+    }
+
+    .arrow-left {
+      left: 0;
+      transform: translateY(-50%) rotate(90deg);
+    }
+
+    .arrow-right {
+      right: 0;
+      transform: translateY(-50%) rotate(-90deg);
+    }
+  }
+
+  &-layer {
+    background: $color-base;
+    box-shadow: 0 7px 25px -5px rgba(#000, 0.25),
+      0 -2px 10px -5px rgba(#000, 0.2);
+    left: 0;
+    padding: ($drp-layer-offset) 0 0;
+    position: absolute;
+    top: 0;
+    width: $drp-width;
+
+    &__container {
+      padding: 0 $drp-padding-x $drp-padding-y;
+    }
+  }
+}
+
+.caption {
+  align-items: center;
+  color: $color-text;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  padding: $drp-padding-y $drp-padding-x;
+
+  &__input {
+    @include button-reset;
+    border: 1px solid transparent;
+    cursor: text;
+    display: inline-block;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    width: 80px;
+
+    &:first-child { margin-right: 5px; }
+
+    &:last-child  { margin-left: 5px; }
+  }
+
+  &__preset {
+    @include typo-subheadline;
+    margin-bottom: 0.25em;
+  }
+
+  &__dates {
+    align-items: center;
+    display: flex;
+  }
+
+  input {
+    outline: none;
+
+    &:hover {
+      border-bottom-color: $color-soft;
+    }
+
+    &.focused, &:active, &:focus {
+      border-bottom-color: $color-active;
+    }
+  }
+
+  .arrow {
+    background: icon-path(arrow) center/contain no-repeat;
+    display: inline-block;
+    height: 1rem;
+    width: 1rem;
+  }
+
+  &::after {
+    border-bottom: 3px solid $color-border-soft;
+    bottom: -1px;
+    content: '';
+    left: 0;
+    opacity: 0;
+    position: absolute;
+    right: 0;
+    transition: all 0.2s ease;
+  }
+
+  &:hover::after {
+    border-bottom-color: $color-primary;
+    opacity: 1;
+  }
+
+  .expanded &::after {
+    opacity: 0;
+  }
+}
+
+.day-picker-container {
+  padding: $drp-padding-y $drp-padding-x ($drp-padding-y * 1.5);
+}
+
+.actions {
+  align-items: center;
+  border-bottom: 1px solid $color-border-soft;
+  display: flex;
+  height: $drp-layer-offset;
+  justify-content: flex-end;
+  padding: 0 $drp-padding-x;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  .-align-right & {
+    justify-content: flex-start;
+  }
+}
+
+.switch-button {
+  display: block;
+
+  &-item {
+    @include typo-subheadline;
+    background: transparent;
+    border: 1px solid $color-border-soft;
+    cursor: pointer;
+    display: inline-block;
+    line-height: 1.5;
+    padding: $spacing-x-small ($spacing-small * 1.2) ($spacing-x-small * 1.3);
+    transition: all 0.2s ease;
+    user-select: none;
+
+    &:hover {
+      border-color: $color-primary;
+    }
+
+    &:first-child {
+      border-bottom-left-radius: 2em;
+      border-top-left-radius: 2em;
+      padding-left: $spacing-base;
+    }
+
+    &:last-child {
+      border-bottom-right-radius: 2em;
+      border-top-right-radius: 2em;
+      padding-right: $spacing-base;
+    }
+
+    & + & {
+      margin-left: -1px;
+    }
+
+    &-active {
+      composes: switch-button-item;
+
+      background: $color-primary;
+      border-color: $color-primary;
+      color: $color-base;
+      cursor: default;
+    }
+  }
+}
+
+.arrow-icon {
+  background: transparent icon-path(dropdown-chevron) no-repeat center/$spacing-small;
+  cursor: pointer;
+  height: $spacing-base;
+  opacity: 0.6;
+  width: $spacing-base;
+  transition: opacity 0.5s;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  .expanded & {
+    opacity: 0;
+    transition: opacity 0.5s, visibility 0 0.5s;
+  }
+}
+
+.arrow-left {
+  composes: arrow-icon;
+  transform: rotate(90deg);
+}
+
+.arrow-right {
+  composes: arrow-icon;
+  transform: rotate(-90deg);
+}
+
+.compareTo {
+  align-items: center;
+  display: flex;
+  border-top: 1px solid $color-border-soft;
+  padding: $drp-padding-y $drp-padding-x;
+
+  &__label {
+    @include typo-subheadline;
+  }
+
+  &__select {
+    @include select;
+
+    &-wrap {
+      margin-left: $spacing-base;
+    }
+  }
+}

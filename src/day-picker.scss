@@ -1,0 +1,205 @@
+@import 'utility';
+
+.arrow-left {
+  background-image: icon-path(chevron-left);
+}
+
+.arrow-right {
+  background-image: icon-path(chevron-right);
+}
+
+.day-picker {
+  width: 100%;
+
+  &--disabled {
+    filter: grayscale(1);
+  }
+
+  &__container {
+    outline: 0;
+    padding: 0;
+    position: relative;
+  }
+
+  &__nav {
+    $title-height: $fs-medium * 1.3; // month title font size with line height
+    $icon-size: $title-height * 1.5;
+
+    align-items: center;
+    display: flex;
+    height: $title-height;
+    justify-content: space-between;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    top: 0;
+
+    &-button {
+      border: 1px solid $color-border-soft;
+      bottom: auto;
+      height: $icon-size;
+      left: auto;
+      margin: 0;
+      outline: 0;
+      pointer-events: all;
+      position: relative;
+      right: auto;
+      top: auto;
+      width: $icon-size;
+
+      &::before {
+        @include absolute;
+        background: transparent center/0.625em no-repeat;
+        content: '';
+        opacity: 0.5;
+      }
+
+      &--next {
+        @extend .day-picker__nav-button;
+
+        &::before {
+          background-image: icon-path(chevron-right);
+        }
+      }
+
+      &--prev {
+        @extend .day-picker__nav-button;
+
+        &::before {
+          background-image: icon-path(chevron-left);
+        }
+      }
+
+      &.-disabled {
+        opacity: 0.5;
+        pointer-events: none;
+      }
+    }
+  }
+
+  &__months, &__weekdays, &__body {
+    width: 100%;
+  }
+
+  &__weekdays-row, &__week, &__months {
+    display: flex;
+  }
+
+  &__months {
+    justify-content: space-between;
+  }
+
+  &__month {
+    flex: 1;
+    margin: 0;
+
+    & + .day-picker__month {
+      margin-left: 4%;
+    }
+  }
+
+  &__caption {
+    margin-bottom: $spacing-base;
+    text-align: center;
+
+    > div {
+      @include typo-subheadline;
+    }
+  }
+
+  &__week {
+    margin-bottom: -1px;
+  }
+
+  &__weekday {
+    padding: 0.625em 0.25em;
+
+    abbr {
+      font: inherit;
+      text-decoration: none;
+    }
+  }
+
+  &__day, &__weekday {
+    border-radius: 0;
+    font-size: $fs-small;
+    flex: 0 0 (100% / 7);
+    line-height: 1;
+    outline: 0;
+    text-align: center;
+  }
+
+  &__day {
+    border: 1px solid $color-border-soft;
+    color: $color-text;
+    padding: 0.95em 0.25em;
+
+    &:not(:first-child) {
+      border-left-width: 0;
+    }
+
+    &.-today {
+      font-weight: $fw-display;
+    }
+
+    &.-selected {
+      &:not(.-outside):not(.-disabled) {
+        position: relative;
+
+        &, &:hover {
+          background-color: $color-primary;
+        }
+      }
+
+      &:not(.start):not(.end) {
+        background-color: rgba($color-primary, 0.2);
+        border-color: lighten($color-primary, 30%);
+        color: darken(mix($color-text, $color-primary, 40%), 10%);
+      }
+    }
+
+    // make sure no-value days are not interactive at all
+    &.-outside {
+      background: transparent !important;
+      border-color: transparent !important;
+      pointer-events: none !important;
+
+      & + .day-picker__day:not(.-outside) {
+        border-left-width: 1px;
+      }
+    }
+
+    &.-disabled {
+      border-color: transparent !important;
+      opacity: 0.5 !important;
+      pointer-events: none !important;
+    }
+
+    &.start, &.end {
+      border-radius: 0;
+      border-color: $color-primary;
+      color: $color-base;
+      font-weight: $fw-display;
+    }
+  }
+}
+
+@mixin start-end-day {
+  border-radius: 0;
+  background-color: $color-primary !important;
+  border-color: $color-primary !important;
+  color: $color-base !important;
+  cursor: pointer;
+  font-weight: $fw-display;
+}
+
+:global
+.start {
+  @include start-end-day;
+}
+
+:global
+.end {
+  @include start-end-day;
+}

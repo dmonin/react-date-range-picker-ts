@@ -1,0 +1,64 @@
+@import 'utility';
+
+.date-range-preset {
+  border: 0;
+  border-bottom: 1px solid $color-border-soft;
+  cursor: pointer;
+  padding: $spacing-small $spacing-x-small $spacing-small 0;
+  position: relative;
+  transition: background-color 0.15s, border-color 0.15s;
+
+  &::after {
+    border-bottom: 3px solid $color-border-soft;
+    bottom: -1px;
+    content: '';
+    left: 0;
+    opacity: 0;
+    position: absolute;
+    right: 0;
+    transition: all 0.2s ease;
+  }
+
+  &:hover {
+    border-bottom-color: $color-primary;
+
+    &::after {
+      border-bottom-color: $color-primary;
+      opacity: 1;
+    }
+  }
+
+  &-list {
+    background: $color-base;
+    display: grid;
+    grid-gap: $spacing-base;
+    grid-template: auto / repeat(3, 1fr);
+    padding: $spacing-small 0;
+  }
+
+  &__name {
+    @include typo-subheadline;
+    margin-bottom: 0.2em;
+  }
+
+  &__range {
+    align-items: center;
+    color: $color-text-soft;
+    display: flex;
+    font-size: $fs-small;
+
+    &__arrow {
+      background: icon-path(arrow) center/$spacing-small no-repeat;
+      display: block;
+      height: $spacing-base;
+      margin: 0 $spacing-x-small;
+      opacity: 0.4;
+      transition: opacity 0.5s;
+      width: $spacing-base;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}

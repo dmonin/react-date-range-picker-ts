@@ -4,7 +4,7 @@ import * as ReactDOM from 'react-dom';
 import './day-picker-original.scss';
 import './day-picker.scss';
 
-import { Modal } from '../modal/modal';
+import { Modal } from './modal';
 import { DateRangePresetList } from './date-range-preset-list';
 import { IntervalNamesLocalization, createInterval } from './data-range-interval';
 import { DateRangePickerPreset } from './date-range-preset';

@@ -1,10 +1,20 @@
 import { LocalizedStringsMethods } from 'react-localization';
-import * as moment from 'moment';
+import { Duration } from 'luxon';
 
-export interface DateRangePickerInterval {
-  name: [string, string];
-  value: number;
-  unit: moment.unitOfTime.Base;
+type IntervalName = 'day' | 'week' | 'month' | 'year';
+
+export class DateRangePickerInterval {
+  name: IntervalName = 'day';
+  duration: Duration = Duration.fromObject({ days: 1 });
+
+  constructor(unit: IntervalName, duration: Duration) {
+    this.name = unit;
+    this.duration = duration;
+  }
+
+  get value() {
+    return this.duration.as(this.name);
+  }
 }
 
 export interface IntervalNamesLocalization extends LocalizedStringsMethods {
@@ -17,14 +27,3 @@ export interface IntervalNamesLocalization extends LocalizedStringsMethods {
   year: string;
   years: string;
 }
-
-export const createInterval = (
-  l10n: IntervalNamesLocalization,
-  name: moment.unitOfTime.Base,
-  value: number = 1): DateRangePickerInterval => {
-  return {
-    name: [l10n[name], l10n[name + 's']],
-    value,
-    unit: name
-  };
-};

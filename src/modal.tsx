@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
 interface ModalProps {
+  container?: React.RefObject<HTMLDivElement>;
   left?: number;
   top?: number;
 }
@@ -16,11 +17,26 @@ export class Modal extends React.Component<ModalProps, {}> {
   }
 
   componentDidMount() {
-    document.body.appendChild(this.el);
+    if (this.props.container) {
+      const container = this.props.container.current as HTMLDivElement;
+      if (container) {
+        container.appendChild(this.el);
+      }
+    } else {
+      document.body.appendChild(this.el);
+    }
+
   }
 
   componentWillUnmount() {
-    document.body.removeChild(this.el);
+    if (this.props.container) {
+      const container = this.props.container.current as HTMLDivElement;
+      if (container) {
+        container.removeChild(this.el);
+      }
+    } else {
+      document.body.removeChild(this.el);
+    }
   }
 
   render() {

@@ -6,13 +6,13 @@ import './day-picker.scss';
 
 import { Modal } from './modal';
 import { DateRangePresetList } from './date-range-preset-list';
-import { IntervalNamesLocalization, createInterval } from './data-range-interval';
+import { IntervalNamesLocalization, DateRangePickerInterval } from './data-range-interval';
 import { DateRangePickerPreset } from './date-range-preset';
 
 import { LocalizedStringsMethods } from 'react-localization';
 import bind from 'bind-decorator';
 import DayPicker from 'react-day-picker';
-import * as moment from 'moment';
+import { DateTime, Duration } from 'luxon';
 
 import * as styles from './date-range-picker.scss';
 import * as dpStyles from './day-picker.scss';
@@ -24,9 +24,10 @@ export interface DateRangePickerLocalization extends LocalizedStringsMethods, In
 
 interface DateRangePickerProps {
   name?: string;
-  initialStartDate?: moment.Moment;
-  initialEndDate?: moment.Moment;
-  onChange?: (dateStart: moment.Moment, dateEnd: moment.Moment) => void;
+  layerParentRef?: React.RefObject<HTMLDivElement>;
+  initialStartDate?: DateTime;
+  initialEndDate?: DateTime;
+  onChange?: (dateStart: DateTime, dateEnd: DateTime) => void;
   presets?: DateRangePickerPreset[];
   l10n: DateRangePickerLocalization;
 }
@@ -38,8 +39,8 @@ interface DateRangePickerState {
   windowWidth: number;
   windowHeight: number;
   isExpanded: boolean;
-  highlightStartDate: moment.Moment;
-  highlightEndDate: moment.Moment;
+  highlightStartDate: DateTime;
+  highlightEndDate: DateTime;
   preset: DateRangePickerPreset;
   showCalendar: boolean;
   showPresets: boolean;
@@ -47,17 +48,19 @@ interface DateRangePickerState {
 }
 export class DateRangePicker extends React.Component<DateRangePickerProps, DateRangePickerState> {
   domNode: HTMLDivElement | null = null;
-  dateFormat: string = 'DD.MM.YY';
-  startDate: moment.Moment = moment();
-  endDate: moment.Moment = moment();
+  dateFormat: string = 'dd.MM.yy';
+  startDate: DateTime = DateTime.local();
+  endDate: DateTime = DateTime.local();
 
   constructor(props: DateRangePickerProps) {
     super(props);
 
     let dayInterval = 14;
-    this.startDate =  this.props.initialStartDate || moment().subtract(dayInterval, 'days');
-    this.endDate = this.props.initialEndDate || moment();
-    dayInterval = this.endDate.diff(this.startDate, 'days') + 1;
+    this.startDate =  this.props.initialStartDate || DateTime.local().minus({
+      days: dayInterval
+    });
+    this.endDate = this.props.initialEndDate || DateTime.local();
+    dayInterval = Math.round(this.endDate.diff(this.startDate, 'days').days + 1);
 
     this.state = {
       isRightSide: false,
@@ -67,10 +70,12 @@ export class DateRangePicker extends React.Component<DateRangePickerProps, DateR
         name: dayInterval + ' ' + this.props.l10n.days,
         startDate: this.startDate,
         endDate: this.endDate,
-        interval: createInterval(this.props.l10n, 'day', dayInterval)
+        interval: new DateRangePickerInterval('day', Duration.fromObject({
+          days: dayInterval
+        }))
       },
-      startDateText: this.startDate.format(this.dateFormat),
-      endDateText: this.endDate.format(this.dateFormat),
+      startDateText: this.startDate.toFormat(this.dateFormat),
+      endDateText: this.endDate.toFormat(this.dateFormat),
       showPresets: false,
       showCalendar: true,
       isExpanded: false,
@@ -98,7 +103,7 @@ export class DateRangePicker extends React.Component<DateRangePickerProps, DateR
     window.removeEventListener('resize', this.updateWindowDimensions);
   }
 
-  getRange(): [moment.Moment, moment.Moment] {
+  getRange(): [DateTime, DateTime] {
     return [this.state.highlightStartDate, this.state.highlightEndDate];
   }
 
@@ -106,13 +111,13 @@ export class DateRangePicker extends React.Component<DateRangePickerProps, DateR
   handlePeriodBack(): void {
     const startDate = this.state.highlightStartDate;
     const interval = this.state.preset.interval;
-    startDate.subtract(interval.value, interval.unit);
+    startDate.minus(interval.duration);
     const endDate = this.state.highlightEndDate;
-    endDate.subtract(interval.value, interval.unit).endOf(interval.unit);
+    endDate.minus(interval.duration).endOf(interval.name);
 
-    const pluralIndex = interval.value == 1 ? 0 : 1;
+    const pluralIndex = interval.duration.as(interval.name) == 1 ? 0 : 1;
     const preset = {
-      name: interval.value + ` ${interval.name[pluralIndex]}`,
+      name: interval.duration.as(interval.name) + ` ${interval.name[pluralIndex]}`,
       interval,
       startDate,
       endDate
@@ -122,8 +127,8 @@ export class DateRangePicker extends React.Component<DateRangePickerProps, DateR
       highlightStartDate: startDate,
       highlightEndDate: endDate,
       preset,
-      startDateText: startDate.format(this.dateFormat),
-      endDateText: endDate.format(this.dateFormat)
+      startDateText: startDate.toFormat(this.dateFormat),
+      endDateText: endDate.toFormat(this.dateFormat)
     });
 
     this.setDateRange(startDate, endDate);
@@ -133,19 +138,19 @@ export class DateRangePicker extends React.Component<DateRangePickerProps, DateR
   handlePeriodNext(): void {
     const startDate = this.state.highlightStartDate;
     const interval = this.state.preset.interval;
-    startDate.add(interval.value, interval.unit);
+    startDate.plus(interval.duration);
     const endDate = this.state.highlightEndDate;
-    endDate.add(interval.value, interval.unit).endOf(interval.unit);
+    endDate.plus(interval.duration).endOf(interval.name);
 
     const preset = this.state.preset;
-    const pluralIndex = interval.value == 1 ? 0 : 1;
+    const pluralIndex = interval.duration.as(interval.name) == 1 ? 0 : 1;
     preset.name = interval.value + ` ${interval.name[pluralIndex]}`;
     this.setState({
       highlightStartDate: startDate,
       highlightEndDate: endDate,
       preset,
-      startDateText: startDate.format(this.dateFormat),
-      endDateText: endDate.format(this.dateFormat)
+      startDateText: startDate.toFormat(this.dateFormat),
+      endDateText: endDate.toFormat(this.dateFormat)
     });
 
     this.setDateRange(startDate, endDate);
@@ -188,7 +193,7 @@ export class DateRangePicker extends React.Component<DateRangePickerProps, DateR
   @bind
   handleDayClick(day: Date): void {
     if (this.state.isStartDateSelect) {
-      this.startDate = moment(day);
+      this.startDate = DateTime.fromJSDate(day);
       this.setState({
         isStartDateSelect: false
       });
@@ -209,21 +214,23 @@ export class DateRangePicker extends React.Component<DateRangePickerProps, DateR
     preset.endDate = this.endDate;
 
     if (this.state.isStartDateSelect) {
-      preset.startDate = moment(day);
-      if (preset.startDate.isAfter(preset.endDate)) {
+      preset.startDate = DateTime.fromJSDate(day);
+      if (preset.startDate > preset.endDate) {
         preset.endDate = preset.startDate;
       }
     } else {
-      preset.endDate = moment(day);
+      preset.endDate = DateTime.fromJSDate(day);
 
-      if (preset.endDate.isBefore(preset.startDate)) {
+      if (preset.endDate < preset.startDate) {
         preset.startDate = preset.endDate;
       }
     }
 
-    const days = preset.endDate.diff(preset.startDate, 'days') + 1;
+    const days = Math.round(preset.endDate.diff(preset.startDate, 'days').days + 1);
     preset.name = days == 1 ? days + ' ' + this.props.l10n.day : days + ' ' + this.props.l10n.days;
-    preset.interval = createInterval(this.props.l10n, 'day', days);
+    preset.interval = new DateRangePickerInterval('day', Duration.fromObject({
+      days
+    }));
 
     this.setState({
       highlightStartDate: preset.startDate,
@@ -251,13 +258,13 @@ export class DateRangePicker extends React.Component<DateRangePickerProps, DateR
 
   @bind
   handleInputDateStartChange(e: React.ChangeEvent<HTMLInputElement>): void {
-    const startDate = moment(e.target.value, [this.dateFormat, 'YYYY-MM-DD']);
+    const startDate = DateTime.fromFormat(e.target.value, this.dateFormat);
     const endDate = this.endDate;
 
     if (startDate.isValid) {
       this.setState({
         highlightStartDate: startDate,
-        highlightEndDate: startDate.isAfter(this.state.highlightEndDate) ?
+        highlightEndDate: startDate > this.state.highlightEndDate ?
           startDate : endDate
       });
     }
@@ -270,11 +277,11 @@ export class DateRangePicker extends React.Component<DateRangePickerProps, DateR
   @bind
   handleInputDateEndChange(e: React.ChangeEvent<HTMLInputElement>): void {
     const startDate = this.startDate;
-    const endDate = moment(e.target.value, [this.dateFormat, 'YYYY-MM-DD']);
+    const endDate = DateTime.fromFormat(e.target.value, this.dateFormat);
 
     if (endDate.isValid) {
       this.setState({
-        highlightStartDate: endDate.isBefore(this.state.highlightStartDate) ?
+        highlightStartDate: endDate < this.state.highlightStartDate ?
           endDate : startDate,
         highlightEndDate: endDate
       });
@@ -293,10 +300,10 @@ export class DateRangePicker extends React.Component<DateRangePickerProps, DateR
     this.setDateRange(this.startDate, this.endDate);
   }
 
-  updateInputTexts(startDate: moment.Moment, endDate: moment.Moment) {
+  updateInputTexts(startDate: DateTime, endDate: DateTime) {
     this.setState({
-      startDateText: startDate.format(this.dateFormat),
-      endDateText: endDate.format(this.dateFormat)
+      startDateText: startDate.toFormat(this.dateFormat),
+      endDateText: endDate.toFormat(this.dateFormat)
     });
   }
 
@@ -313,7 +320,7 @@ export class DateRangePicker extends React.Component<DateRangePickerProps, DateR
     this.updateInputTexts(preset.startDate, preset.endDate);
   }
 
-  setDateRange(startDate: moment.Moment, endDate: moment.Moment) {
+  setDateRange(startDate: DateTime, endDate: DateTime) {
     this.startDate = startDate;
     this.endDate = endDate;
 
@@ -363,8 +370,8 @@ export class DateRangePicker extends React.Component<DateRangePickerProps, DateR
     }
 
     const modifiers = {
-      start: this.state.highlightStartDate.toDate(),
-      end: this.state.highlightEndDate.toDate()
+      start: this.state.highlightStartDate.toJSDate(),
+      end: this.state.highlightEndDate.toJSDate()
     };
 
     return <div className={`${styles.dateRangePicker} ${this.state.isExpanded ? styles.expanded : ''}`}>
@@ -407,7 +414,7 @@ export class DateRangePicker extends React.Component<DateRangePickerProps, DateR
       </div>
 
       { this.state.isExpanded &&
-        <Modal left={ left } top={ top }>
+        <Modal left={ left } top={ top } container={ this.props.layerParentRef }>
           <div className={ `${styles.dateRangePickerLayer} ${this.state.isRightSide && styles.alignRight}` }>
             <div className={ styles.actions}>
               <div className={ styles.switchButton }>
@@ -456,10 +463,10 @@ export class DateRangePicker extends React.Component<DateRangePickerProps, DateR
                 numberOfMonths={ 2 }
                 modifiers={ modifiers }
                 selectedDays={[
-                  this.state.highlightStartDate.toDate(),
+                  this.state.highlightStartDate.toJSDate(),
                   {
-                    from: this.state.highlightStartDate.toDate(),
-                    to: this.state.highlightEndDate.toDate()
+                    from: this.state.highlightStartDate.toJSDate(),
+                    to: this.state.highlightEndDate.toJSDate()
                   }]
                 }
                 onDayClick={ this.handleDayClick }

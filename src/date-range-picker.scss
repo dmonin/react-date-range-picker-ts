@@ -1,23 +1,9 @@
 @import 'utility';
 
-$drp-width: 700px;
-$drp-padding-x: $spacing-large;
-$drp-padding-y: $spacing-large * 1.125;
-
-/*
-  calculation:
-    vertical padding top and bottom
-  + span (x days) height with margin, font-size and line-height
-  + input font size with height
-  + 2px border (2/$fs-document)=rem
-*/
-$drp-layer-offset: $drp-padding-y * 2 + ($fs-medium * 0.25 + $fs-medium * 1.3)
-  + ($fs-base * 1.6) + (2px/$fs-document)*1rem;
-
-
 .date-range-picker {
   display: inline-block;
   position: relative;
+  z-index: 30;
 
   &-display {
     align-items: center;

@@ -28,9 +28,9 @@ export class DateRangePresetList extends React.Component<DateRangePresetListProp
           onClick={ () => this.handlePresetClick(preset)}>
             <h3 className={ styles.dateRangePresetName }>{ preset.name }</h3>
             <p className={ styles.dateRangePresetRange }>
-              <span>{ preset.startDate.format('DD.MM.YYYY') }</span>
+              <span>{ preset.startDate.toFormat('dd.MM.yyyy') }</span>
               <span className={ styles.dateRangePresetRangeArrow } aria-label='until'></span>
-              <span>{ preset.endDate.format('DD.MM.YYYY') }</span>
+              <span>{ preset.endDate.toFormat('dd.MM.yyyy') }</span>
             </p>
         </div>
     );

@@ -1,9 +1,9 @@
+import { DateTime } from 'luxon';
 import { DateRangePickerInterval } from './data-range-interval';
-import * as moment from 'moment';
 
 export interface DateRangePickerPreset {
   name: string;
-  startDate: moment.Moment;
-  endDate: moment.Moment;
+  startDate: DateTime;
+  endDate: DateTime;
   interval: DateRangePickerInterval;
 }

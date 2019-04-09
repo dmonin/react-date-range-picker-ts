@@ -46,7 +46,7 @@ interface DateRangePickerState {
   showPresets: boolean;
   isStartDateSelect: boolean;
 }
-export class DateRangePicker extends React.Component<DateRangePickerProps, DateRangePickerState> {
+export default class DateRangePicker extends React.Component<DateRangePickerProps, DateRangePickerState> {
   domNode: HTMLDivElement | null = null;
   dateFormat: string = 'dd.MM.yy';
   startDate: DateTime = DateTime.local();
@@ -444,6 +444,10 @@ export class DateRangePicker extends React.Component<DateRangePickerProps, DateR
                   navButtonPrev: dpStyles.dayPickerNavButtonPrev,
                   navButtonNext: dpStyles.dayPickerNavButtonNext,
                   navButtonInteractionDisabled: dpStyles.disabled,
+
+                  weekNumber: dpStyles.weekNumber,
+                  footer: dpStyles.footer,
+                  todayButton: dpStyles.todayButton,
 
                   months: dpStyles.dayPickerMonths,
                   month: dpStyles.dayPickerMonth,

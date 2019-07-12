@@ -49,6 +49,7 @@ interface DateRangePickerState {
 export default class DateRangePicker extends React.Component<DateRangePickerProps, DateRangePickerState> {
   domNode: HTMLDivElement | null = null;
   dateFormat: string = 'dd.MM.yy';
+  layerRef: React.RefObject<HTMLDivElement> = React.createRef<HTMLDivElement>();
   startDate: DateTime = DateTime.local();
   endDate: DateTime = DateTime.local();
 
@@ -89,6 +90,7 @@ export default class DateRangePicker extends React.Component<DateRangePickerProp
     this.domNode = ReactDOM.findDOMNode(this) as HTMLDivElement;
     this.updateWindowDimensions();
     window.addEventListener('resize', this.updateWindowDimensions);
+    document.documentElement.addEventListener('click', this.handleDocumentClick);
 
     if (this.props.name) {
       const selectedType = localStorage.getItem(this.props.name + '_type');
@@ -101,10 +103,23 @@ export default class DateRangePicker extends React.Component<DateRangePickerProp
 
   componentWillUnmount() {
     window.removeEventListener('resize', this.updateWindowDimensions);
+    document.documentElement.removeEventListener('click', this.handleDocumentClick);
   }
 
   getRange(): [DateTime, DateTime] {
     return [this.state.highlightStartDate, this.state.highlightEndDate];
+  }
+
+  @bind
+  handleDocumentClick(e: MouseEvent): void {
+    const el = this.layerRef.current;
+    const target = e.target as Element;
+
+    if (target && el && !el.contains(target)) {
+      this.setState({
+        isExpanded: false
+      });
+    }
   }
 
   @bind
@@ -183,6 +198,16 @@ export default class DateRangePicker extends React.Component<DateRangePickerProp
       showCalendar: isShowCalendar,
       showPresets: !isShowCalendar
     });
+    if (isShowCalendar) {
+      this.setState({
+        preset: {
+          name: this.state.preset.name,
+          startDate: this.startDate,
+          endDate: this.endDate,
+          interval: this.state.preset.interval
+        }
+      });
+    }
 
     if (this.props.name) {
       const type = isShowCalendar ? 'calendar' : 'presets';
@@ -415,7 +440,8 @@ export default class DateRangePicker extends React.Component<DateRangePickerProp
 
       { this.state.isExpanded &&
         <Modal left={ left } top={ top } container={ this.props.layerParentRef }>
-          <div className={ `${styles.dateRangePickerLayer} ${this.state.isRightSide && styles.alignRight}` }>
+          <div ref={ this.layerRef }
+            className={ `${styles.dateRangePickerLayer} ${this.state.isRightSide && styles.alignRight}` }>
             <div className={ styles.actions}>
               <div className={ styles.switchButton }>
                 <div className={ this.state.showCalendar ?
@@ -480,7 +506,7 @@ export default class DateRangePicker extends React.Component<DateRangePickerProp
             </div>
             }
 
-            {/* <div className={ styles.compareTo }>
+            <div className={ styles.compareTo }>
               <strong className={ styles.compareToLabel }>Compare to</strong>
 
               <div className={ styles.compareToSelectWrap }>
@@ -491,7 +517,7 @@ export default class DateRangePicker extends React.Component<DateRangePickerProp
                   <option>C</option>
                 </select>
               </div>
-            </div> */}
+            </div>
           </div>
         </Modal>
       }

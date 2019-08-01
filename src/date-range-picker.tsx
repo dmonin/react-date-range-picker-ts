@@ -23,6 +23,7 @@ export interface DateRangePickerLocalization extends LocalizedStringsMethods, In
 }
 
 interface DateRangePickerProps {
+  enableComparison?: boolean;
   name?: string;
   layerParentRef?: React.RefObject<HTMLDivElement>;
   initialStartDate?: DateTime;
@@ -506,18 +507,19 @@ export default class DateRangePicker extends React.Component<DateRangePickerProp
             </div>
             }
 
-            <div className={ styles.compareTo }>
-              <strong className={ styles.compareToLabel }>Compare to</strong>
+            { this.props.enableComparison &&
+              <div className={ styles.compareTo }>
+                <strong className={ styles.compareToLabel }>Compare to</strong>
 
-              <div className={ styles.compareToSelectWrap }>
-                <select className={ styles.compareToSelect }>
-                  <option selected disabled>Please choose</option>
-                  <option>A</option>
-                  <option>B</option>
-                  <option>C</option>
-                </select>
+                <div className={ styles.compareToSelectWrap }>
+                  <select className={ styles.compareToSelect }>
+                    <option value='none'>None</option>
+                    <option value='period'>Previous Period</option>
+                    <option value='year'>Previous Year</option>
+                  </select>
+                </div>
               </div>
-            </div>
+            }
           </div>
         </Modal>
       }

@@ -24,28 +24,35 @@ export interface DateRangePickerLocalization extends LocalizedStringsMethods, In
 
 interface DateRangePickerProps {
   enableComparison?: boolean;
-  name?: string;
-  layerParentRef?: React.RefObject<HTMLDivElement>;
-  initialStartDate?: DateTime;
+  initialCompareTo?: string;
   initialEndDate?: DateTime;
-  onChange?: (dateStart: DateTime, dateEnd: DateTime) => void;
-  presets?: DateRangePickerPreset[];
+  initialStartDate?: DateTime;
   l10n: DateRangePickerLocalization;
+  layerParentRef?: React.RefObject<HTMLDivElement>;
+  name?: string;
+  onChange?: (range: [DateTime, DateTime], previousRange: [DateTime, DateTime]) => void;
+  presets?: DateRangePickerPreset[];
 }
 
 interface DateRangePickerState {
-  isRightSide: boolean;
-  startDateText: string;
+  compareTo: string;
   endDateText: string;
-  windowWidth: number;
-  windowHeight: number;
-  isExpanded: boolean;
-  highlightStartDate: DateTime;
+  startDateText: string;
+
   highlightEndDate: DateTime;
+  highlightStartDate: DateTime;
+
+  isExpanded: boolean;
+  isRightSide: boolean;
+  isStartDateSelect: boolean;
+
   preset: DateRangePickerPreset;
+
   showCalendar: boolean;
   showPresets: boolean;
-  isStartDateSelect: boolean;
+
+  windowHeight: number;
+  windowWidth: number;
 }
 export default class DateRangePicker extends React.Component<DateRangePickerProps, DateRangePickerState> {
   domNode: HTMLDivElement | null = null;
@@ -65,6 +72,7 @@ export default class DateRangePicker extends React.Component<DateRangePickerProp
     dayInterval = Math.round(this.endDate.diff(this.startDate, 'days').days + 1);
 
     this.state = {
+      compareTo: this.props.initialCompareTo || 'none',
       isRightSide: false,
       windowWidth: 0,
       windowHeight: 0,
@@ -107,8 +115,34 @@ export default class DateRangePicker extends React.Component<DateRangePickerProp
     document.documentElement.removeEventListener('click', this.handleDocumentClick);
   }
 
+  getPreviousRange(compareTo?: string): [DateTime, DateTime] {
+    const compareToVal = compareTo || this.state.compareTo;
+    const range = this.getRange();
+    let start = range[0];
+    let end = range[1];
+    if (compareToVal == 'year') {
+      start = range[0].minus({
+        year: 1
+      });
+      end = range[1].minus({
+        year: 1
+      });
+    } else if (compareToVal == 'period') {
+      const days = range[1].diff(range[0], 'days');
+      start = range[0].minus(days);
+      end = range[1].minus(days);
+    }
+
+    return [start, end];
+  }
+
+  getPreviousRangeText(): string {
+    const range = this.getPreviousRange();
+    return range[0].toFormat(this.dateFormat) + ' - ' + range[1].toFormat(this.dateFormat);
+  }
+
   getRange(): [DateTime, DateTime] {
-    return [this.state.highlightStartDate, this.state.highlightEndDate];
+    return [this.startDate, this.endDate];
   }
 
   @bind
@@ -120,6 +154,16 @@ export default class DateRangePicker extends React.Component<DateRangePickerProp
       this.setState({
         isExpanded: false
       });
+    }
+  }
+
+  @bind
+  handleCompareToChange(e: React.ChangeEvent<HTMLSelectElement>): void {
+    this.setState({
+      compareTo: e.target.value
+    });
+    if (this.props.onChange) {
+      this.props.onChange(this.getRange(), this.getPreviousRange(e.target.value));
     }
   }
 
@@ -351,7 +395,7 @@ export default class DateRangePicker extends React.Component<DateRangePickerProp
     this.endDate = endDate;
 
     if (this.props.onChange) {
-      this.props.onChange(startDate, endDate);
+      this.props.onChange(this.getRange(), this.getPreviousRange());
     }
   }
 
@@ -437,6 +481,12 @@ export default class DateRangePicker extends React.Component<DateRangePickerProp
         </div>
 
         <div className={ styles.arrowRight} onClick={ this.handlePeriodNext }></div>
+        { this.state.compareTo != 'none' &&
+          <div className={ styles.compareToCaption }
+            title={ 'Compare to ' + this.getPreviousRangeText() }>
+            { this.getPreviousRangeText()}
+          </div>
+        }
       </div>
 
       { this.state.isExpanded &&
@@ -512,7 +562,10 @@ export default class DateRangePicker extends React.Component<DateRangePickerProp
                 <strong className={ styles.compareToLabel }>Compare to</strong>
 
                 <div className={ styles.compareToSelectWrap }>
-                  <select className={ styles.compareToSelect }>
+                  <select
+                    className={ styles.compareToSelect }
+                    value={ this.state.compareTo}
+                    onChange={ this.handleCompareToChange }>
                     <option value='none'>None</option>
                     <option value='period'>Previous Period</option>
                     <option value='year'>Previous Year</option>

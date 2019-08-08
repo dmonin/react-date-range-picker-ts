@@ -239,3 +239,14 @@
     }
   }
 }
+
+.compare-to-caption {
+  color: $color-gray-600;
+  bottom: 10px;
+  font-size: $fs-small;
+  left: 50%;
+  position: absolute;
+  transform: translate(-50%, 0);
+  white-space: nowrap;
+  z-index: 50;
+}

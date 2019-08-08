@@ -29,3 +29,4 @@ export const compareToSelect: string;
 export const error: string;
 export const label: string;
 export const compareToSelectWrap: string;
+export const compareToCaption: string;
